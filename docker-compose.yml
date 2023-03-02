@@ -1,0 +1,38 @@
+version: '3.5'
+services:
+  db-server:
+    container_name: "mysql"
+    # image: iregistry.eur.ad.sag/tnvm/mysql:5.7-azid-nocase-extended
+    image: mysql:5.7
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile
+    ports:
+      - target: 3306
+        published: 3306
+    environment:
+      MYSQL_ROOT_HOST: '%'    
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/root
+      MYSQL_DATABASE: sample
+      MYSQL_USER: b2b
+      MYSQL_PASSWORD: secret
+      TZ: "Asia/Calcutta"
+    command: ['mysqld', '--default-time-zone=+05:30']
+    healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
+    volumes:
+      - type: volume
+        source: mysql_data
+        target: /var/lib/mysql
+      - ./conf:/etc/mysql/conf.d
+      - ./init:/docker-entrypoint-initdb.d
+      - ./secrets/:/run/secrets/
+volumes:
+  mysql_data:
+
+networks:
+  default:
+    name: dev
+    external: true
